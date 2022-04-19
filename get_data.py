@@ -33,6 +33,9 @@ def get_data(indicators=None, start_year=2000, end_year=None):
     if end_year == None:
         end_year = int(datetime.datetime.now().date().strftime("%Y"))
 
+    meta_start_year = start_year
+    meta_end_year = end_year
+
     # Check existing metadata
     appending = 0
     if os.path.exists("wb_metadata"):
@@ -42,9 +45,11 @@ def get_data(indicators=None, start_year=2000, end_year=None):
         if set(indicators) == set(metadata_parameters[:-2]):
             if int(metadata_parameters[-1]) < end_year:
                 appending = 1
+                meta_start_year = min(int(metadata_parameters[-2]), start_year)
                 start_year = int(metadata_parameters[-1]) + 1
             elif int(metadata_parameters[-2]) > start_year:
                 appending = 1
+                meta_end_year = max(int(metadata_parameters[-1]), end_year)
                 end_year = int(metadata_parameters[-2]) - 1
             else:
                 print("Data is up to date.")
@@ -75,8 +80,8 @@ def get_data(indicators=None, start_year=2000, end_year=None):
     # Write metadata
     with open("wb_metadata", "w") as f:
         f.write("\n".join(indicators) + "\n")
-        f.write(f"{start_year}\n")
-        f.write(f"{end_year}\n")
+        f.write(f"{meta_start_year}\n")
+        f.write(f"{meta_end_year}\n")
 
 
 if __name__ == "__main__":
