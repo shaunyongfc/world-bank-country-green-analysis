@@ -6,6 +6,18 @@ import plotly.express as px
 import matplotlib.pyplot as plt
 import os
 import datetime
+import itertools
+
+
+indicators_dict = {
+    "EN.ATM.GHGT.KT.CE": "Total greenhouse gases in CO2",
+    "EG.ELC.RNEW.ZS": "Renewable energy in %",
+    "NY.GDP.MKTP.CD": "GDP in USD",
+    "NY.GDP.PCAP.CD": "GDP per capita in USD",
+    "NY.GDP.PCAP.PP.CD": "GDP per capita in PPP",
+    "NY.GDP.PCAP.KD.ZG": "GDP per capita growth in %",
+    "SP.POP.TOTL": "Total population"
+}
 
 
 def remove_aggregates(df):
@@ -47,16 +59,79 @@ def remove_aggregates(df):
 
 def get_latest_data(df, column):
     """
-    Given DataFrame and column name, collect the latest valid value for specific column for each country.
-    Countries without valid values are dropped.
+    Given DataFrame and column name, collect the latest valid value for specific
+    column for each country. Countries without valid values are dropped.
     """
     df_segment = df[["country", "year", column]].dropna()
     drop_indices = []
     for country in df_segment.country:
         max_year = max(df_segment[df_segment.country == country].year)
-        drop_indices.append((df_segment.country == country) & (df_segment.year < max_year))
+        drop_indices.append(
+            (df_segment.country == country) & (df_segment.year < max_year)
+        )
     segment_mask = (sum(drop_indices) == 0)
     df_segment = df_segment[segment_mask]
     df_segment = df_segment.drop("year", axis=1)
     df_segment = df_segment.set_index("country")
     return df_segment
+
+
+def plot_scatter_pairs(data, x_list, y_list, add_dict=None):
+    """
+    Given a list of x and a list of y, for each pair of x and y, plot a scatter
+    graph with certain default settings. The graph includes all years available.
+
+    data: DataFrame of world bank data
+    x_list: A list of parameters for the x axis
+    y_list: A list of parameters for the y axis
+    add_dict: An additional dictionary for new features if applicable.
+    """
+    labels_dict = indicators_dict
+    if add_dict != None:
+        labels_dict = {**labels_dict, **add_dict}
+    for x, y in itertools.product(x_list, y_list):
+        fig = px.scatter(
+            data,
+            x=x,
+            y=y,
+            labels=labels_dict,
+            hover_data=["country", "year"],
+            opacity=0.5
+        )
+        fig.show()
+
+
+def plot_scatter_pairs_latest(data, x_list, y_list, add_dict=None):
+    """
+    Given a list of x and a list of y, for each pair of x and y, plot a scatter
+    graph with certain default settings. The graph only includes the latest
+    entry for each country.
+
+    data: DataFrame of world bank data
+    x_list: A list of parameters for the x axis
+    y_list: A list of parameters for the y axis
+    add_dict: An additional dictionary for new features if applicable.
+    """
+    labels_dict = indicators_dict
+    if add_dict != None:
+        labels_dict = {**labels_dict, **add_dict}
+    for x, y in itertools.product(x_list, y_list):
+        data_segment = data[["country", "year", x, y]].dropna()
+        drop_indices = []
+        for country in data_segment.country:
+            max_year = max(data_segment[data_segment.country == country].year)
+            drop_indices.append(
+                (data_segment.country == country) & \
+                (data_segment.year < max_year)
+            )
+        segment_mask = (sum(drop_indices) == 0)
+        data_segment = data_segment[segment_mask]
+        fig = px.scatter(
+            data_segment,
+            x=x,
+            y=y,
+            labels=labels_dict,
+            hover_data=["country", "year"],
+            opacity=0.5
+        )
+        fig.show()

@@ -2,6 +2,7 @@ import os
 import datetime
 import pandas as pd
 from pandas_datareader import wb
+from EDA_utils import indicators_dict
 # from tqdm import tqdm
 
 
@@ -21,15 +22,7 @@ def get_data(indicators=None, start_year=2000, end_year=None):
     """
     # Initialise parameters
     if indicators == None:
-        indicators = [
-            "EN.ATM.GHGT.KT.CE", # Total greenhouse gases in CO2
-            "EG.ELC.RNEW.ZS", # Renewable energy in %
-            "NY.GDP.MKTP.CD", # GDP in USD
-            "NY.GDP.PCAP.CD", # GDP per capita in USD
-            "NY.GDP.PCAP.PP.CD", # GDP per capita in PPP
-            "NY.GDP.PCAP.KD.ZG", # GDP per capita growth in %
-            "SP.POP.TOTL", # Total population
-        ]
+        indicators = list(indicators_dict.keys())
     if end_year == None:
         end_year = int(datetime.datetime.now().date().strftime("%Y"))
 
