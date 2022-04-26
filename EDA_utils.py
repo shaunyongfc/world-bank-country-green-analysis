@@ -57,7 +57,7 @@ def remove_aggregates(df):
     return df[~df.country.isin(aggregates)]
 
 
-def get_latest_data(df, column):
+def get_latest_data(df, column, drop_year=True):
     """
     Given DataFrame and column name, collect the latest valid value for specific
     column for each country. Countries without valid values are dropped.
@@ -71,7 +71,8 @@ def get_latest_data(df, column):
         )
     segment_mask = (sum(drop_indices) == 0)
     df_segment = df_segment[segment_mask]
-    df_segment = df_segment.drop("year", axis=1)
+    if drop_year:
+        df_segment = df_segment.drop("year", axis=1)
     df_segment = df_segment.set_index("country")
     return df_segment
 
